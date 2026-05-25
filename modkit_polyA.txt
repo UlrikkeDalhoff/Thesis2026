@@ -1,0 +1,26 @@
+#Below done for both BAM files: 
+
+modkit pileup HeLa_decapping_merged.polyAplus_ptGT10.bam PolyAplus_m6A.bed --ignore m --mod-thresholds a:0.9 --threads 8 
+ 
+
+#Only get rows that has a modification 
+
+awk '$11 > 0' PolyAplus_m6A.bed > anymod_polyAplus_m6A.bed 
+
+ 
+
+#Only extract rows that has a m6A modification 
+
+awk '$4 == "a" || $4 == "17596" || $4 == "69426"' anymod_polyAplus_m6A.bed > onlym6A_polyAplus.bed 
+
+ 
+
+#Only get rows where there has been at least 5 observations of the modification 
+
+awk '$5 > 5' onlym6A_polyAplus.bed > m6Aresult_polyAplus.bed 
+
+ 
+
+#Get the real results with more strict setting to avoid noise  
+
+awk '$5 >= 10 && $11 >= 10 && $12 >= 2' m6Aresult_polyAplus.bed > m6Arealresult2_polyAplus.bed  
