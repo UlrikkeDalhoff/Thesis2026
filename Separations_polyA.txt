@@ -1,0 +1,160 @@
+#!/usr/bin/env bash 
+ 
+
+set -euo pipefail 
+ 
+
+ 
+
+ 
+# ---------------------------- 
+ 
+
+# Inputs 
+ 
+
+# ---------------------------- 
+BAM1="calls_2025_12_08_HeLa_decapping_experiment_1.sorted.bam" 
+BAM2="calls_2025_12_12_HeLa_decapping_experiment_2.sorted.bam" 
+ 
+
+ 
+
+ 
+# ---------------------------- 
+ 
+
+# Outputs(<10 samples in the ployA tag is polyA- and >10 samples is polyA+) 
+ 
+
+# ---------------------------- 
+ 
+
+OUTDIR="${OUTDIR:-igv_merged}" 
+ 
+
+PREFIX="${PREFIX:-HeLa_decapping_merged}" 
+ 
+
+THREADS="${THREADS:-8}" 
+ 
+
+PT_THRESH="${PT_THRESH:-10}" 
+ 
+
+ 
+
+ 
+ 
+ 
+
+STRIP_TAGS="${STRIP_TAGS:-mv,pa}" 
+ 
+
+ 
+
+ 
+mkdir -p "$OUTDIR" 
+ 
+
+ 
+
+ 
+MERGED_SORTED="${OUTDIR}/${PREFIX}.sorted.bam" 
+POLYA_PLUS="${OUTDIR}/${PREFIX}.polyAplus_ptGT${PT_THRESH}.bam" 
+POLYA_MINUS="${OUTDIR}/${PREFIX}.polyAminus_ptLE${PT_THRESH}.bam" 
+ 
+ 
+
+ 
+
+command -v samtools >/dev/null 2>&1 || { echo "ERROR: samtools not found in PATH"; exit 1; } 
+ 
+
+[[ -f "$BAM1" ]] || { echo "ERROR: missing $BAM1"; exit 1; } 
+ 
+
+[[ -f "$BAM2" ]] || { echo "ERROR: missing $BAM2"; exit 1; } 
+ 
+
+ 
+
+ 
+echo "[INFO] Merging -> (optional tag strip) -> sorting: ${MERGED_SORTED}" 
+ 
+
+if [[ -n "$STRIP_TAGS" ]]; then 
+ 
+
+  # Merge to stdout, strip tags, then coordinate-sort. 
+   
+
+samtools merge -@ "$THREADS" -o - "$BAM1" "$BAM2" \ 
+ 
+
+    | samtools view -@ "$THREADS" -bh -x "$STRIP_TAGS" - \ 
+ 
+
+    | samtools sort -@ "$THREADS" -o "$MERGED_SORTED" - 
+ 
+
+else 
+   
+
+samtools merge -@ "$THREADS" -o - "$BAM1" "$BAM2" \ 
+   
+
+  | samtools sort -@ "$THREADS" -o "$MERGED_SORTED" - 
+ 
+
+fi 
+ 
+ 
+
+ 
+
+echo "[INFO] Indexing merged BAM (BAI): ${MERGED_SORTED}.bai" 
+ 
+
+samtools index -b "$MERGED_SORTED" 
+ 
+ 
+
+ 
+
+echo "[INFO] Creating polyA+ BAM (pt > ${PT_THRESH}):  
+
+$POLYA_PLUS" 
+ 
+
+samtools view -@ "$THREADS" -bh -e "[pt] > ${PT_THRESH}" -o "$POLYA_PLUS" "$MERGED_SORTED" 
+ 
+
+samtools index -b "$POLYA_PLUS" 
+ 
+
+ 
+
+ 
+echo "[INFO] Creating polyA- BAM (pt <= ${PT_THRESH} OR pt missing): $POLYA_MINUS" 
+ 
+
+samtools view -@ "$THREADS" -bh -e "!([pt] > ${PT_THRESH})" -o "$POLYA_MINUS" "$MERGED_SORTED" 
+ 
+
+samtools index -b "$POLYA_MINUS" 
+ 
+ 
+
+ 
+
+echo "[INFO] Done." 
+ 
+
+echo "  $MERGED_SORTED" 
+ 
+
+echo "  $POLYA_PLUS" 
+ 
+
+echo "  $POLYA_MINUS" 
