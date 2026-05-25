@@ -1,0 +1,43 @@
+samtools view HeLa_decapping_merged.polyAplus_ptGT10.bam chr11:65496738-65507516 
+
+> PolyAplus_MALAT1.tsv 
+
+ 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAminus_ptLE10.bam chr11:65496738-65507516 
+
+> PolyAminus_MALAT1.tsv 
+
+ 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAplus_ptGT10.bam chr6:26102947-26105337 > PolyAplus_HIST1H4C.tsv 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAminus_ptLE10.bam chr6:26102947-26105337 > PolyAminus_HIST1H4C.tsv 
+
+ 
+
+ 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAplus_ptGT10.bam chr15:44710517-44719145 > PolyAplus_B2M.tsv 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAminus_ptLE10.bam chr15:44710517-44719145 > PolyAminus_B2M.tsv 
+
+ 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAplus_ptGT10.bam chr7:5526148-5531601 > PolyAplus_ACTB.tsv 
+
+ 
+
+samtools view HeLa_decapping_merged.polyAminus_ptLE10.bam chr7:5526148-5531601 > PolyAminus_ACTB.tsv 
