@@ -1,0 +1,73 @@
+#Loads the samtools program 
+
+module load samtools 
+
+ 
+
+# samtools view -F 4 reads the BAM file and removes unmapped read. Outputs alignment as text (SAM)  
+
+samtools view -F 4 SLIC-CAGE.bam | 
+
+#output is tab-separated format 
+awk 'BEGIN{OFS="\t"}{ 
+
+#Checks strand $2 = flag and 16 = reverse strand. If true = forward strand (+) if false = reverse strand (-) 
+if(and($2,16)==0) 
+
+#$3 = chromosome, $4 = position, then converted to BED format: start = $4-1 and end = $4. This gives us the 5' end of the reads.  
+print $3,$4-1,$4,"+"; 
+else 
+
+#$10 = read sequence. This gived read length. This calculates rightmost position (5' end for reverse reads)  
+print $3,$4+length($10)-1,$4+length($10),"-" 
+
+#Saves to exp2_ctss.bed 
+}' > SLIC_ctss.bed 
+
+ 
+
+ 
+
+#Split into plus and minus according to column 4 
+
+awk '$4=="+"' SLIC_ctss.bed > SLIC_ctss_plus.bed 
+awk '$4=="-"' SLIC_ctss.bed > SLIC_ctss_minus.bed 
+
+ 
+
+#Loading the bedtools program 
+
+module load bedtools 
+
+ 
+
+#sorts by chromosome and position 
+
+sort -k1,1 -k2,2n SLIC_ctss_plus.bed | \ 
+
+# Groups identical positions (same chromosome, start and end) "-c 4 –o count" counts how #many reads are at each position. Collapses duplicates  
+
+bedtools groupby -g 1,2,3 -c 4 -o count | \ 
+
+#Kepps output clean (tab-separated) saving it to a bedGraph file  
+
+awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4}' > SLIC_plus.bedGraph 
+
+ 
+
+ 
+
+Same procedure as above.  
+sort -k1,1 -k2,2n SLIC_ctss_minus.bed | bedtools groupby -g 1,2,3 -c 4 -o count |  
+
+awk 'BEGIN{OFS="\t"}{print $1,$2,$3,$4}' > SLIC_minus.bedGraph 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
