@@ -1,0 +1,9 @@
+wget https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.chrom.sizes 
+
+ 
+
+for i in $(seq 1 10000); do bedtools shuffle -seed "$i" -i common_all4_full_extended.bed -g hg38.chrom.sizes  | bedtools intersect -u -a - -b HeLa_FANTOM5_enhancers_hg38.bed  | wc -l done > null_distribution_again.txt 
+
+ 
+
+awk -v obs=59 '{n++; if($1>=obs) k++} END{print "p =", (k+1)/(n+1)}' null_distribution_again.txt 
