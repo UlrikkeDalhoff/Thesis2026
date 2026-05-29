@@ -1,10 +1,10 @@
 #Make modkit analysis 
 
-modkit pileup calls_2025_12_08_HeLa_decapping_experiment_1.sorted.bam m6A_exp1.bed --ignore m --mod-thresholds a:0.9 --threads 8 
+modkit pileup calls_2025_12_08_HeLa_decapping_experiment_1.sorted.bam Exp1_m6A.bed --ignore m --mod-thresholds a:0.9 --threads 8 
 
  
 
-modkit pileup calls_2025_12_12_HeLa_decapping_experiment_2.sorted.bam m6A_exp2.bed --ignore m --mod-thresholds a:0.9 --threads 8 
+modkit pileup calls_2025_12_12_HeLa_decapping_experiment_2.sorted.bam Exp2_m6A.bed --ignore m --mod-thresholds a:0.9 --threads 8 
 
  
 
@@ -25,47 +25,17 @@ modkit pileup SLIC-CAGE.bam m6A_SLIC.bed --ignore m --mod-thresholds a:0.9 --thr
  
 
  
+# filter reads
+ 
+
+awk '$5 >= 10 && $11 >= 10 && $12 >= 2' Exp1_m6A.bed > Exp1_m6A_sorted.bed 
 
  
 
- 
-
-# Intersect with cluster regions 
-
-bedtools intersect -a m6A_exp1.bed -b common_all4_full.bed -wa -u > exp1_m6A_in_clusters.bed 
+awk '$5 >= 10 && $11 >= 10 && $12 >= 2' Exp2_m6A.bed > Exp2_m6A_sorted.bed 
 
  
+# intersect between the two replicates
 
-bedtools intersect -a m6A_exp2.bed -b common_all4_full.bed -wa -u > exp2_m6A_in_clusters.bed 
-
+bedtools intersect -a Exp1_m6A_sorted.bed -b Exp2_m6A_sorted.bed -u > intersect_m6A.bed 
  
-
- 
-
- 
-
-#Sort 
-
-sort -k1,1 -k2,2n exp1_m6A_in_clusters.bed > m6A_exp1_sorted.bed 
-
- 
-
-sort -k1,1 -k2,2n exp2_m6A_in_clusters.bed > m6A_exp2_sorted.bed 
-
- 
-
- 
-
- 
-
-#Filter out low reads 
-
-#Only get rows that has a modification, only extract rows that has a m6A modification, only get rows that has 10 or above reads, 10 or above percentage reads and at least 2 modifications.  
-
- 
-
-awk '$11 > 0 && ($4 == "a" || $4 == "17596" || $4 == "69426") && $5 >= 10 && $11 >= 10 && $12 >= 2' m6A_exp1_sorted.bed > m6A_exp1_done.bed 
-
- 
-
-awk '$11 > 0 && ($4 == "a" || $4 == "17596" || $4 == "69426") && $5 >= 10 && $11 >= 10 && $12 >= 2' m6A_exp2_sorted.bed > m6A_exp2_done.bed 
